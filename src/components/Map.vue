@@ -21,6 +21,8 @@ export default {
     };
   },
   created() {
+    window.addEventListener("keydown", this.onKeyDown);
+
     this.loadMapFromString(
 `    XXXXX
     X   X
@@ -33,6 +35,9 @@ X *  *             ..X
 XXXXX XXXX X@XXXX  ..X
     X      XXX  XXXXXX
     XXXXXXXX`);
+  },
+  destroyed() {
+    window.removeEventListener("keydown", this.onKeyDown);
   },
   methods: {
     loadMapFromString(mapString) {
@@ -60,6 +65,77 @@ XXXXX XXXX X@XXXX  ..X
       }
       this.mapSize[0] = maxWidth * 25;
       this.mapSize[1] = y * 25;
+    },
+
+    indexOfSubList(haystack, needle) {
+      for (const i in haystack) {
+        if (haystack[i].length === needle.length) {
+          let failed = false;
+          for (const j in haystack) {
+            if (haystack[i][j] !== needle[j]) {
+              failed = true;
+              break;
+            }
+          }
+          if (!failed) {
+            return i;
+          }
+        }
+      }
+      return -1;
+    },
+
+    onKeyDown(event) {
+      const code = event.code;
+      if (code.startsWith("Arrow")) {
+        // Attempt to move the player
+
+        let movement;
+        if (code === "ArrowLeft") {
+          movement = [-1, 0];
+        } else if (code === "ArrowRight") {
+          movement = [1, 0];
+        } else if (code === "ArrowUp") {
+          movement = [0, -1];
+        } else {  // code === "ArrowDown"
+          movement = [0, 1];
+        }
+
+        const playerDestPosition = [
+          this.player[0] + movement[0],
+          this.player[1] + movement[1],
+        ];
+
+        const heartIndex = this.indexOfSubList(this.hearts, playerDestPosition);
+        if (heartIndex !== -1) {
+          const heartDestPosition = [
+            playerDestPosition[0] + movement[0],
+            playerDestPosition[1] + movement[1],
+          ];
+
+          if (this.indexOfSubList(this.walls, heartDestPosition) === -1 &&
+                this.indexOfSubList(this.hearts, heartDestPosition) === -1) {
+            this.hearts[heartIndex] = heartDestPosition;
+            this.player = playerDestPosition;
+
+            if (this.indexOfSubList(this.slots, heartDestPosition) !== -1) {
+              // The heart was pushed into a slot.
+              // Check if the level is completed.
+              let gameWon = true;
+              for (const heart of this.hearts) {
+                if (this.indexOfSubList(this.slots, heart) === -1) {
+                  gameWon = false;
+                }
+              }
+              if (gameWon) {
+                console.log("Congratulations! Game won!");
+              }
+            }
+          }
+        } else if (this.indexOfSubList(this.walls, playerDestPosition) === -1) {
+          this.player = playerDestPosition;
+        }
+      }
     },
   },
 };
