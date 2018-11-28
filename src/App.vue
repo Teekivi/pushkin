@@ -1,8 +1,7 @@
 <template>
   <div id="app">
-    <div class="world-container">
-      <World ref="world" @game-won="increaseLevel"></World>
-    </div>
+    <world ref="world" @game-won="increaseLevel"></world>
+
     <div class="bottom-bar">
       <a href="#" @click="restartLevel">⟲</a><br/>
       <a href="#" @click="decreaseLevel">◄</a>
@@ -69,12 +68,6 @@ export default {
 
 <style scoped>
   #app {
-    height: 100%;
-  }
-  .world-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     height: 100%;
   }
 

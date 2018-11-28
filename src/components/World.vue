@@ -1,9 +1,12 @@
 <template>
-  <div class="world" :style="{ width: worldSize[0] + 'px', height: worldSize[1] + 'px' }">
-    <div v-for="pos of walls" class="part wall" :class="`x-${pos[0]} y-${pos[1]}`"></div>
-    <div v-for="pos of hearts" class="part heart" :class="`x-${pos[0]} y-${pos[1]}`"></div>
-    <div v-for="pos of slots" class="part slot" :class="`x-${pos[0]} y-${pos[1]}`"></div>
-    <div class="part player" v-if="player[0] !== -1" :class="`x-${player[0]} y-${player[1]}`"></div>
+  <div class="world-container" :style="{ minWidth: worldSize[0] + 'px' }">
+    <div class="world" :style="{ width: worldSize[0] + 'px', height: worldSize[1] + 'px' }"
+         @click="onWorldClick">
+      <div v-for="pos of walls" class="part wall" :class="`x-${pos[0]} y-${pos[1]}`"></div>
+      <div v-for="pos of hearts" class="part heart" :class="`x-${pos[0]} y-${pos[1]}`"></div>
+      <div v-for="pos of slots" class="part slot" :class="`x-${pos[0]} y-${pos[1]}`"></div>
+      <div class="part player" id="player" v-if="player[0] !== -1" :class="`x-${player[0]} y-${player[1]}`"></div>
+    </div>
   </div>
 </template>
 
@@ -78,6 +81,43 @@ export default {
       return -1;
     },
 
+    movePlayer(movement) {
+      const playerDestPosition = [
+        this.player[0] + movement[0],
+        this.player[1] + movement[1],
+      ];
+
+      const heartIndex = this.indexOfSubList(this.hearts, playerDestPosition);
+      if (heartIndex !== -1) {
+        const heartDestPosition = [
+          playerDestPosition[0] + movement[0],
+          playerDestPosition[1] + movement[1],
+        ];
+
+        if (this.indexOfSubList(this.walls, heartDestPosition) === -1 &&
+              this.indexOfSubList(this.hearts, heartDestPosition) === -1) {
+          this.hearts[heartIndex] = heartDestPosition;
+          this.player = playerDestPosition;
+
+          if (this.indexOfSubList(this.slots, heartDestPosition) !== -1) {
+            // The heart was pushed into a slot.
+            // Check if the level is completed.
+            let gameWon = true;
+            for (const heart of this.hearts) {
+              if (this.indexOfSubList(this.slots, heart) === -1) {
+                gameWon = false;
+              }
+            }
+            if (gameWon) {
+              this.$emit("game-won");
+            }
+          }
+        }
+      } else if (this.indexOfSubList(this.walls, playerDestPosition) === -1) {
+        this.player = playerDestPosition;
+      }
+    },
+
     onKeyDown(event) {
       const code = event.code;
       if (code.startsWith("Arrow")) {
@@ -94,39 +134,23 @@ export default {
           movement = [0, 1];
         }
 
-        const playerDestPosition = [
-          this.player[0] + movement[0],
-          this.player[1] + movement[1],
-        ];
+        this.movePlayer(movement);
+      }
+    },
 
-        const heartIndex = this.indexOfSubList(this.hearts, playerDestPosition);
-        if (heartIndex !== -1) {
-          const heartDestPosition = [
-            playerDestPosition[0] + movement[0],
-            playerDestPosition[1] + movement[1],
-          ];
-
-          if (this.indexOfSubList(this.walls, heartDestPosition) === -1 &&
-                this.indexOfSubList(this.hearts, heartDestPosition) === -1) {
-            this.hearts[heartIndex] = heartDestPosition;
-            this.player = playerDestPosition;
-
-            if (this.indexOfSubList(this.slots, heartDestPosition) !== -1) {
-              // The heart was pushed into a slot.
-              // Check if the level is completed.
-              let gameWon = true;
-              for (const heart of this.hearts) {
-                if (this.indexOfSubList(this.slots, heart) === -1) {
-                  gameWon = false;
-                }
-              }
-              if (gameWon) {
-                this.$emit("game-won");
-              }
-            }
-          }
-        } else if (this.indexOfSubList(this.walls, playerDestPosition) === -1) {
-          this.player = playerDestPosition;
+    onWorldClick(event) {
+      const rect = document.getElementById("player").getBoundingClientRect();
+      if (rect.left <= event.x && event.x <= rect.right) {
+        if (event.y < rect.top) {
+          this.movePlayer([0, -1]);
+        } else if (event.y > rect.bottom) {
+          this.movePlayer([0,  1]);
+        }
+      } else if (rect.top <= event.y && event.y <= rect.bottom) {
+        if (event.x < rect.left) {
+          this.movePlayer([-1, 0]);
+        } else if (event.x > rect.right) {
+          this.movePlayer([ 1, 0]);
         }
       }
     },
@@ -138,8 +162,15 @@ export default {
   $part-width: 25px;
   $part-height: 25px;
 
+  .world-container {
+    height: 100%;
+  }
+
   .world {
     position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
   }
 
   .world .part {
