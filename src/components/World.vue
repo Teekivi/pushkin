@@ -121,7 +121,7 @@ export default {
                 }
               }
               if (gameWon) {
-                this.$root.$emit("game-won");
+                this.$emit("game-won");
               }
             }
           }

@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <div class="world-container">
-      <World ref="world"></World>
+      <World ref="world" @game-won="increaseLevel"></World>
     </div>
     <div class="bottom-bar">
       <a href="#" @click="restartLevel">⟲</a><br/>
@@ -33,8 +33,6 @@ export default {
   },
   created() {
     this.levelNo = 1;
-
-    this.$root.$on("game-won", this.increaseLevel);
   },
   watch: {
     levelNo(val) {
