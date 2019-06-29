@@ -2,9 +2,9 @@
   <div class="world-container" :style="{ minWidth: worldSize[0] + 'px' }">
     <div class="world" :style="{ width: worldSize[0] + 'px', height: worldSize[1] + 'px' }"
          @click="onWorldClick">
-      <div v-for="pos of walls" class="part wall" :class="`x-${pos[0]} y-${pos[1]}`"></div>
-      <div v-for="pos of hearts" class="part heart" :class="`x-${pos[0]} y-${pos[1]}`"></div>
-      <div v-for="pos of slots" class="part slot" :class="`x-${pos[0]} y-${pos[1]}`"></div>
+      <div v-for="(pos, i) of walls" :key="'w' + i" class="part wall" :class="`x-${pos[0]} y-${pos[1]}`"></div>
+      <div v-for="(pos, i) of hearts" :key="'h' + i" class="part heart" :class="`x-${pos[0]} y-${pos[1]}`"></div>
+      <div v-for="(pos, i) of slots" :key="'s' + i" class="part slot" :class="`x-${pos[0]} y-${pos[1]}`"></div>
       <div class="part player" id="player" v-if="player[0] !== -1" :class="`x-${player[0]} y-${player[1]}`"></div>
     </div>
   </div>
