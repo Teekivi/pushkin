@@ -2,15 +2,18 @@
   <div id="app">
     <world ref="world" @game-won="increaseLevel"></world>
 
+    <level-chooser v-if="levelChooserVisible" @level-chosen="chooseLevel">
+    </level-chooser>
+
     <div class="bottom-bar">
       <a href="#" @click="restartLevel">⟲</a><br/>
       <a href="#" @click="decreaseLevel">◄</a>
-      level {{ levelNo }}
+      <a href="#" @click="showLevelChooser">level {{ levelNo }}</a>
       <a href="#" @click="increaseLevel">►</a>
     </div>
 
     <a href="https://github.com/Teekivi/pushkin">
-      <img style="position: absolute; top: 0; right: 0; border: 0;"
+      <img style="position: absolute; top: 0; right: 0; border: 0; z-index: 10;"
            src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub">
     </a>
   </div>
@@ -18,15 +21,17 @@
 
 <script>
 import maps from "./maps.js";
+import LevelChooser from "./components/LevelChooser.vue";
 import World from "./components/World.vue";
 
 export default {
   name: 'app',
   components: {
-    World,
+    LevelChooser, World,
   },
   data() {
     return {
+      levelChooserVisible: false,
       levelNo: -1,
     };
   },
@@ -51,8 +56,15 @@ export default {
         this.levelNo++;
       }
     },
+    chooseLevel(levelNo) {
+      this.levelNo = levelNo;
+      this.levelChooserVisible = false;
+    },
     restartLevel() {
       this.$refs.world.loadMapFromString(maps[this.levelNo - 1]);
+    },
+    showLevelChooser() {
+      this.levelChooserVisible = true;
     },
   },
 };
